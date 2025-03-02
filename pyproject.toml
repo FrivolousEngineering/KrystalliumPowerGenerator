@@ -1,0 +1,17 @@
+[project]
+name = "krystalliumdoomsdayweapon"
+version = "1.0.0"
+description = ""
+authors = [
+    {name = "Arjen Hiemstra",email = "ahiemstra@heimr.nl"}
+]
+readme = "README.md"
+requires-python = ">=3.13,<4.0"
+dependencies = [
+    "pyserial"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"

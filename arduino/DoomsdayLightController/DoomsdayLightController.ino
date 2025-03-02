@@ -91,7 +91,7 @@ struct Side {
     for (int i = 0; i < LedCount; ++i) {
       int16_t value = uint8_t(current) + (random(10) - 5);
       auto intensity = 128 + random(127);
-      auto color = ColorFromPalette(palette, constrain(value, 0, 255), intensity);
+      auto color = ColorFromPalette(palette, constrain(value, 0, 255), intensity, NOBLEND);
       leds[i] = color;
     }
 
@@ -185,15 +185,6 @@ void processCommand(String command) {
   } else if (strcmp(keyword, "SETSTATE") == 0) {
     handleSetStateCommand(argument);
   }
-  
-  
-  /*else if (strcmp(keyword, "ACTIVATE") == 0) {
-    handleActivateCommand(argument);
-  } else if (strcmp(keyword, "FADEOUT") == 0) {
-    handleFadeOutCommand(argument);
-  } else if (strcmp(keyword, "OVERLOAD") == 0) {
-    handleOverloadCommand(argument);
-  }*/
 }
 
 void handleNameCommand(char* argument) {
@@ -270,21 +261,3 @@ void handleSetStateCommand(char* arguments)
 
   currentState = newState;
 }
-/*
-void handleActivateCommand(char* arguments)
-{
-  left.animate(activate, 0, 255, 2);
-  right.animate(activate, 0, 255, 2);
-}
-
-void handleFadeOutCommand(char* arguments)
-{
-  left.animate(fade_out, 0, 255, 10);
-  right.animate(fade_out, 0, 255, 10);
-}
-
-void handleOverloadCommand(char* arguments)
-{
-  left.animate(overload, 0, 255, 10);
-  right.animate(overload, 0, 255, 10);
-}*/

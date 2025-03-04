@@ -5,17 +5,6 @@ import pydantic
 import rfid
 
 
-@pydantic.dataclasses.dataclass(kw_only = True, frozen = True)
-class RefinedSample:
-    id: int
-    rfid_id: str
-
-    primary_action: str
-    primary_target: str
-    secondary_action: str
-    secondary_target: str
-    purity: str
-
 
 class Main:
     def __init__(self):

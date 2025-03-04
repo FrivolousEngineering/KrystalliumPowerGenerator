@@ -1,17 +1,19 @@
-[project]
-name = "krystalliumdoomsdayweapon"
-version = "1.0.0"
-description = ""
-authors = [
-    {name = "Arjen Hiemstra",email = "ahiemstra@heimr.nl"}
-]
+[tool.poetry]
+name = "krystalliumpowergenerator"
+version = "0.1.0"
+description = "Power generator for Krystalium"
+authors = ["Arjen Hiemstra <ahiemstra@heimr.nl>"]
 readme = "README.md"
-requires-python = ">=3.13,<4.0"
-dependencies = [
-    "pyserial"
-]
+package-mode = false
 
+[tool.poetry.dependencies]
+python = "^3.11"
+pydantic = "^2.6.0"
+pyserial = "^3.5"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.3.4"
 
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

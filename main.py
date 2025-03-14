@@ -29,17 +29,14 @@ class Main(krystallium.component.MainLoop):
         self.__left_sample = None
         self.__right_sample = None
 
+        self.__intensity = 0
+
 
     async def start(self):
         self.__serial_controller = rfid.RFIDController(
             self.on_card_detected,
             self.on_card_lost,
             self.on_traits,
-            root_path = Path("."),
-            patterns = [
-                "lights-output",
-                "rfid-*-output",
-            ]
         )
         self.__serial_controller.start()
 
@@ -48,7 +45,7 @@ class Main(krystallium.component.MainLoop):
 
     async def update(self, elapsed: float):
         if not self.__lights:
-            self.__lights = self.__serial_controller.getDeviceByName("lights")
+            self.__lights = self.__serial_controller.getDeviceByName("pg-lights")
             if self.__lights:
                 logging.info(f"Found light controller: {self.__lights.port}")
 
@@ -64,30 +61,33 @@ class Main(krystallium.component.MainLoop):
 
         if self.__left_sample and self.__right_sample and self.__lights_state == self.LightState.Inactive:
             if samples.Action.is_opposite(self.__left_sample.primary_action, self.__right_sample.primary_action):
-                if self.__left_sample.primary_target == self.__right_sample.primary_target:
-                    self.set_lights_state(self.LightState.Active)
-                    await asyncio.sleep(3)
+                left_target = self.__left_sample.primary_target.to_int()
+                right_target = self.__right_sample.primary_target.to_int()
 
-                    if self.__left_sample.purity < samples.Purity.Unblemished or self.__right_sample.purity < samples.Purity.Unblemished:
-                        self.set_lights_state(self.LightState.Fadeout)
-                        return
+                # Min: 16.2 Max: 162
+                t = (left_target + right_target) * (2.4 + 5.7)
 
-                    distance = abs(int(self.__left_sample.purity) - int(self.__right_sample.purity))
-                    if distance >= 3:
-                        self.set_lights_state(self.LightState.Overload)
-                    else:
-                        logging.info("Stable")
+                left_purity = int(self.__left_sample.purity)
+                right_purity = int(self.__right_sample.purity)
+                # Min:
+                p = ((left_purity * right_purity) / (1 + (abs(left_purity - right_purity) * 0.25))) * 8.4
+
+                e = t * p
+
+                self.__intensity = (e / 100000) * 255
+
+                self.set_lights_state(self.LightState.Active, self.__intensity)
 
     def on_card_detected(self, name, rfid_id):
         pass
 
     def on_card_lost(self, name, rfid_id):
         if self.__left_sample and self.__right_sample:
-            self.set_lights_state(self.LightState.Inactive)
+            self.set_lights_state(self.LightState.Inactive, self.__lights_state)
 
-        if self.__left_sample.rfid_id == rfid_id:
+        if self.__left_sample and self.__left_sample.rfid_id == rfid_id:
             self.__left_sample = None
-        elif self.__right_sample.rfid_id == rfid_id:
+        elif self.__right_sample and self.__right_sample.rfid_id == rfid_id:
             self.__right_sample = None
 
     def on_traits(self, name, traits):
@@ -102,7 +102,6 @@ class Main(krystallium.component.MainLoop):
                 self.__rfid_left.card_id,
                 traits
             )
-            # print(self.__left_sample)
             if self.__lights:
                 self.__lights.sendRawCommand("DETECTED LEFT")
         elif name == self.__rfid_right.name:
@@ -110,11 +109,10 @@ class Main(krystallium.component.MainLoop):
                 self.__rfid_right.card_id,
                 traits
             )
-            # print(self.__right_sample)
             if self.__lights:
                 self.__lights.sendRawCommand("DETECTED RIGHT")
 
-    def set_lights_state(self, state):
+    def set_lights_state(self, state, intensity):
         if state == self.__lights_state or not self.__lights:
             return
 
@@ -122,13 +120,13 @@ class Main(krystallium.component.MainLoop):
         logging.info(f"New light state {self.__lights_state}")
         match state:
             case self.LightState.Inactive:
-                self.__lights.sendRawCommand("SETSTATE INACTIVE")
+                self.__lights.sendRawCommand(f"SETSTATE INACTIVE {intensity}")
             case self.LightState.Active:
-                self.__lights.sendRawCommand("SETSTATE ACTIVE")
+                self.__lights.sendRawCommand(f"SETSTATE ACTIVE {intensity}")
             case self.LightState.Fadeout:
-                self.__lights.sendRawCommand("SETSTATE FADEOUT")
+                self.__lights.sendRawCommand(f"SETSTATE FADEOUT {intensity}")
             case self.LightState.Overload:
-                self.__lights.sendRawCommand("SETSTATE OVERLOAD")
+                self.__lights.sendRawCommand(f"SETSTATE OVERLOAD {intensity}")
 
 
 if __name__ == "__main__":

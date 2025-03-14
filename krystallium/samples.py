@@ -73,6 +73,29 @@ class Target(enum.StrEnum):
     Mind = "mind"
     Plant = "plant"
 
+    def to_int(self):
+        match self:
+            case Target.Mind:
+                return 1
+            case Target.Sound:
+                return 2
+            case Target.Light:
+                return 3
+            case Target.Energy:
+                return 4
+            case Target.Gas:
+                return 5
+            case Target.Liquid:
+                return 6
+            case Target.Plant:
+                return 7
+            case Target.Flesh:
+                return 8
+            case Target.Solid:
+                return 9
+            case Target.Krystal:
+                return 10
+
 
 class Purity(enum.IntEnum):
     Unknown = 0
